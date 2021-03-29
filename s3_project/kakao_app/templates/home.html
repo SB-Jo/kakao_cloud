@@ -1,0 +1,72 @@
+<html>
+    <head>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+        <script>
+            function deleteFile(file_name) {
+                $.ajax({
+                    url: '/delete',
+                    method: 'POST',
+                    contentType: 'application/JSON',
+                    data : JSON.stringify({
+                        file_name : file_name
+                    })
+                }).done(function (res) {
+                    window.location = '/';
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <a class="navbar-brand" href="/">KAKAO</a>
+            <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse flex-grow-0" id="navbarNav">
+                <ul class="navbar-nav">
+                    {% if userid %}
+                    <li class="nav-item ">
+                        <a class="nav-link" href="/logout">로그아웃</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item ">
+                        <a class="nav-link" href="/register">회원가입</a>
+                    </li>
+                    <li class="nav-item ">
+                        <a class="nav-link active" href="/login">로그인</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="row mt-5">
+                <h1>Home</h1>
+                <p>카카오톡 내려받기한 파일을 분석해, 채팅방에 참여한 사용자가 어떤 단어를 가장 많이 사용했는지, 상위 50개의 단어를 보여줍니다</p>
+                <p>해당 내용을 바탕으로 채팅방 사용자별 워드클라우드 이미지를 제공합니다</p>
+                {% if userid %}
+                <form action="/" method="post" enctype="multipart/form-data">
+                    <input type= "file" name = "file"/>
+                    <input type = "submit"/>
+                </form>
+                <p>카카오톡 내려받기한 파일을 제출하시면, 아래에 목록이 뜹니다</p>
+                {% endif %}
+            </div>
+            <div class = "row mt-5">
+                <h3>Kakao-Count</h3>
+                <table class="table">
+                    {% for file in files %}
+                    <p>파일을 클릭하면, 해당 파일로 넘어갑니다</p>
+                    <div class="col-12">
+                        <a href="/wc/{{ file['filename'] }}" class="btn btn-default glyphicon glyphicon-download">{{ file['filename'] }}</a>
+                        <button type='button' class='btn btn-secondary' onclick="deleteFile('{{ file.filename }}');">삭제</button>
+                    </div>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
