@@ -1,5 +1,5 @@
 import re
-from eunjeon import Mecab
+from konlpy.tag import Mecab
 from wordcloud import WordCloud
 from collections import Counter
 import matplotlib.pyplot as plt
@@ -69,21 +69,30 @@ def tokenize(talk_dic):
         for idx, talk_set in enumerate(v):
             time, talk = talk_set
             clean_talk = message_cleaning(talk)
-            tokenized_talk = [word for word in mecab.morphs(clean_talk) if word not in SW and len(word) > 1]
-            talk_dic[k][idx] = (time, talk, tokenized_talk)
+            tokenized_talk = []
+            for word, tag in mecab.pos(clean_talk):
+                if len(word) == 1 and tag in ['EC', 'JX', 'ETM', 'JKS', 'JKB', 'XSV', 'JKO','XSV+EC', 'XSN','NNB', 'EP', 'JKG', 'VCP', 'NNB+JKS', 'JKG']:
+                    continue
+                if word in SW and tag in ['EC', 'JX', 'ETM', 'JKS', 'JKB', 'XSV', 'JKO','XSV+EC', 'XSN','NNB', 'EP', 'JKG', 'VCP', 'NNB+JKS', 'JKG']:
+                    continue
+                tokenized_talk.append((word, tag))
+            #talk_dic[k][idx] = (time, talk, tokenized_talk)
             total_sub.extend(tokenized_talk)
         total[k] = total_sub
     return total
 
 
 def get_count(total):
-    word_counts = []
+    total_counts = []
     for k, v in total.items():
-        count = Counter(v)
-        wc = count.most_common(50)
-        word_counts.append(wc)
-        if not os.path.isfile(f'./kakao_app/static/wordcloud_{k}.png'):
-            wordcloud = WordCloud(font_path = './kakao_app/static/malgun.ttf',
+        words = [word for word, tag in v]
+        word_count = Counter(words)
+        total_count = Counter(v)
+        wc = word_count.most_common(80)
+        tc = total_count.most_common(80)
+        total_counts.append(tc)
+        if not os.path.isfile(f'./static/wordcloud_{k}.png'):
+            wordcloud = WordCloud(font_path = './static/malgun.ttf',
                             relative_scaling=0.2,
                             background_color = 'white',
                             ).generate_from_frequencies(dict(wc))
@@ -91,8 +100,8 @@ def get_count(total):
             plt.imshow(wordcloud)
             plt.axis("off")
             plt.close()
-            fig.savefig(f'./kakao_app/static/wordcloud_{k}.png')
+            fig.savefig(f'./static/wordcloud_{k}.png')
             # plt.figure(figsize=(16,8))
             # plt.imsave(f'./static/wordcloud_{k}.png', wordcloud)
             #fig.savefig(f'./static/wordcloud_{k}.png', dpi=300)
-    return word_counts
+    return total_counts

@@ -1,9 +1,9 @@
 from flask import Flask, flash, jsonify, send_file, Blueprint
 from flask import request, redirect, render_template, session
-from kakao_app.forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm
 from werkzeug.security import generate_password_hash, check_password_hash
-from kakao_app.models import db
-from kakao_app.kakao_analyze import read_file, tokenize, get_count
+from models import db
+from kakao_analyze import read_file, tokenize, get_count
 from io import BytesIO, StringIO
 import os
 
@@ -59,12 +59,17 @@ def register():
 
 @bp.route('/wc/<filename>', methods=['GET'])
 def word_count(filename):
+    userid = session.get('userid', None)
+    if not userid:
+        return render_template('/login')
     file = db.kakao.find_one({'filename':filename})
     talks  = file['talk_set']
     talk_set = {}
     for talker, talks in talks.items():
         talk_set[talker] = talks
     tokenized_talk = tokenize(talk_set)
+#    db.tokenized.insert_one({'filename':filename,
+#                            'tokenized':tokenized_talk})
     wcs = get_count(tokenized_talk)
     talkers = [talker for talker in tokenized_talk.keys()]
 
@@ -82,6 +87,6 @@ def delete_file():
     file = db.kakao.find_one({'filename':file_name})
     talkers = [talker for talker in file['talk_set'].keys()]
     for talker in talkers:
-        os.remove(f"./kakao_app/static/wordcloud_{talker}.png")
+        os.remove(f"./static/wordcloud_{talker}.png")
     db.kakao.delete_many({'filename':file_name})
     return jsonify()
