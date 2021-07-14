@@ -1,0 +1,11 @@
+# kakao_cloud
+  - models.py : get access to Mongodb 
+  - kakao_analyze.py
+    - read_file : get {talker : [(talk, time)]}
+    - tokenize : tokenize text by using Mecab
+    - get_count : get count of words to make wordcloud
+  - forms.py
+    - RegisterForm
+    - LoginForm
+  - routes
+    - main_route.py
